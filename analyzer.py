@@ -43,6 +43,8 @@ def read_entries(filepath: str) -> Iterable[LogEntry]:
                 yield entry
 
 def main():
+    from collections import defaultdict
+    
     ap = argparse.ArgumentParser(description="Log Analyzer")
     ap.add_argument("--input", required=True, help="Path to access log file")
     ap.add_argument("--top", type=int, default=10, help="Top N results to show")
@@ -51,28 +53,38 @@ def main():
     ip_counter = Counter()
     status_counter = Counter()
     endpoint_counter = Counter()
-
-    parsed = 0
+    
+    ip_status = defaultdict(Counter)
     for e in read_entries(args.input):
         parsed += 1
         ip_counter[e.ip] += 1
         status_counter[e.status] += 1
         endpoint_counter[e.path] += 1
+        ip_status[e.ip][e.status] += 1
 
-    print("\n=== Log Analyzer Summary ===")
-    print(f"Parsed entries: {parsed}")
 
-    print("\nTop IPs:")
+    print("\n=== Resumo da Análise de Logs ===")
+    print(f"Entradas analisadas: {parsed}")
+
+    print("\nIPs com mais requisições:")
     for ip, c in ip_counter.most_common(args.top):
         print(f"  {ip}: {c}")
 
-    print("\nStatus codes:")
+    print("\nDistribuição de códigos HTTP:")
     for st, c in status_counter.most_common():
         print(f"  {st}: {c}")
 
-    print("\nTop endpoints:")
+    print("\nEndpoints mais acessados:")
     for ep, c in endpoint_counter.most_common(args.top):
         print(f"  {ep}: {c}")
+
+    print("\nIPs suspeitos (heurística básica):")
+    for ip, statuses in ip_status.items():
+        total_erros = statuses[401] + statuses[403]
+        if total_erros >= 2:
+            print(f"  {ip} pode estar tentando força bruta (401/403: {total_erros})")
+
+
 
 if __name__ == "__main__":
     main()

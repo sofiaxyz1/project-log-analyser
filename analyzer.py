@@ -1,5 +1,7 @@
 import argparse
 import re
+import csv
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional, Iterable
 from collections import Counter
@@ -48,6 +50,7 @@ def main():
     ap = argparse.ArgumentParser(description="Log Analyzer")
     ap.add_argument("--input", required=True, help="Path to access log file")
     ap.add_argument("--top", type=int, default=10, help="Top N results to show")
+    ap.add_argument("--out", default="relatorio.csv", help="Caminho do CSV de saída")
     args = ap.parse_args()
 
     ip_counter = Counter()
@@ -84,6 +87,31 @@ def main():
         if total_erros >= 2:
             print(f"  {ip} pode estar tentando força bruta (401/403: {total_erros})")
 
+with open(args.out, "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f)
+
+    w.writerow(["gerado_em", datetime.utcnow().isoformat() + "Z"])
+    w.writerow([])
+
+    w.writerow(["metrica", "chave", "valor"])
+
+    for ip, c in ip_counter.most_common():
+        w.writerow(["requisicoes_por_ip", ip, c])
+
+    for st, c in status_counter.most_common():
+        w.writerow(["codigo_http", st, c])
+
+    for ep, c in endpoint_counter.most_common():
+        w.writerow(["endpoint", ep, c])
+
+    w.writerow([])
+    w.writerow(["ips_suspeitos", "ip", "qtd_401_403"])
+    for ip, statuses in ip_status.items():
+        total_erros = statuses[401] + statuses[403]
+        if total_erros >= 2:
+            w.writerow(["suspeito", ip, total_erros])
+
+print(f"\n✅ CSV gerado em: {args.out}")
 
 
 if __name__ == "__main__":

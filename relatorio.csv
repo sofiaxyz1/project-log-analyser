@@ -1,0 +1,15 @@
+gerado_em,2026-02-15T04:53:19.352297Z
+
+metrica,chave,valor
+requisicoes_por_ip,192.168.0.10,2
+requisicoes_por_ip,192.168.0.11,1
+requisicoes_por_ip,192.168.0.12,1
+codigo_http,200,2
+codigo_http,401,1
+codigo_http,403,1
+endpoint,/,1
+endpoint,/login,1
+endpoint,/admin,1
+endpoint,/products,1
+
+ips_suspeitos,ip,qtd_401_403

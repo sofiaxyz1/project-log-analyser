@@ -57,6 +57,7 @@ def main():
     status_counter = Counter()
     endpoint_counter = Counter()
     
+    parsed = 0
     ip_status = defaultdict(Counter)
     for e in read_entries(args.input):
         parsed += 1
@@ -87,32 +88,31 @@ def main():
         if total_erros >= 2:
             print(f"  {ip} pode estar tentando força bruta (401/403: {total_erros})")
 
-with open(args.out, "w", newline="", encoding="utf-8") as f:
-    w = csv.writer(f)
+    with open(args.out, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
 
-    w.writerow(["gerado_em", datetime.utcnow().isoformat() + "Z"])
-    w.writerow([])
+        w.writerow(["gerado_em", datetime.utcnow().isoformat() + "Z"])
+        w.writerow([])
 
-    w.writerow(["metrica", "chave", "valor"])
+        w.writerow(["metrica", "chave", "valor"])
 
-    for ip, c in ip_counter.most_common():
-        w.writerow(["requisicoes_por_ip", ip, c])
+        for ip, c in ip_counter.most_common():
+            w.writerow(["requisicoes_por_ip", ip, c])
 
-    for st, c in status_counter.most_common():
-        w.writerow(["codigo_http", st, c])
+        for st, c in status_counter.most_common():
+            w.writerow(["codigo_http", st, c])
 
-    for ep, c in endpoint_counter.most_common():
-        w.writerow(["endpoint", ep, c])
+        for ep, c in endpoint_counter.most_common():
+            w.writerow(["endpoint", ep, c])
 
-    w.writerow([])
-    w.writerow(["ips_suspeitos", "ip", "qtd_401_403"])
-    for ip, statuses in ip_status.items():
-        total_erros = statuses[401] + statuses[403]
+        w.writerow([])
+        w.writerow(["ips_suspeitos", "ip", "qtd_401_403"])
+        for ip, statuses in ip_status.items():
+            total_erros = statuses[401] + statuses[403]
         if total_erros >= 2:
             w.writerow(["suspeito", ip, total_erros])
 
-print(f"\n✅ CSV gerado em: {args.out}")
-
+    print(f"\n✅ CSV gerado em: {args.out}")
 
 if __name__ == "__main__":
     main()

@@ -3,11 +3,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 LOG_PATTERN = re.compile(
-  r'^(?P<ip>\S+)\s+\S+\s+\S+\s+\[(?P<time>[^\]]+)\]\s+'
+    r'^(?P<ip>\S+)\s+\S+\s+\S+\s+\[(?P<time>[^\]]+)\]\s+'
     r'"(?P<method>[A-Z]+)\s+(?P<path>\S+)(?:\s+HTTP/(?P<httpver>[\d.]+))?"\s+'
     r'(?P<status>\d{3})\s+(?P<size>\S+)\s+'
-    r'"(?P<ref>[^"]*)"\s+"(?P<ua>[^"]*)"'
+    r'(?:(?:"(?P<ref>[^"]*)"\s+)?)'
+    r'"(?P<ua>[^"]*)"'
 )
+
 
 #dataclass
 class LogEntry:
@@ -32,6 +34,8 @@ return LogEntry(
 )
 
 if __name__ == "__main__":
-  test_line = '192.168.0.10 - - [14/Feb/2026:10:01:01 -0300] "GET /HTTP/1.1" 200 1234 "-" "Mozilla/5.0"'
-  entry = parse_line(test_line)
-  print(entry)
+    test_line = '192.168.0.10 - - [14/Feb/2026:10:01:01 -0300] "GET / HTTP/1.1" 200 1234 "-" "Mozilla/5.0"'
+    print("Line:", test_line)
+    entry = parse_line(test_line)
+    print("Parsed:", entry)
+

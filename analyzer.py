@@ -1,6 +1,8 @@
+import argparse
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Iterable
+from collections import Counter
 
 LOG_PATTERN = re.compile(
     r'^(?P<ip>\S+)\s+\S+\s+\S+\s+\[(?P<time>[^\]]+)\]\s+'
@@ -33,8 +35,44 @@ def parse_line(line: str) -> Optional[LogEntry]:
         user_agent=m.group("ua"),
     )
 
+def read_entries(filepath: str) -> Iterable[LogEntry]:
+    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            entry = parse_line(line)
+            if entry:
+                yield entry
+
+def main():
+    ap = argparse.ArgumentParser(description="Log Analyzer")
+    ap.add_argument("--input", required=True, help="Path to access log file")
+    ap.add_argument("--top", type=int, default=10, help="Top N results to show")
+    args = ap.parse_args()
+
+    ip_counter = Counter()
+    status_counter = Counter()
+    endpoint_counter = Counter()
+
+    parsed = 0
+    for e in read_entries(args.input):
+        parsed += 1
+        ip_counter[e.ip] += 1
+        status_counter[e.status] += 1
+        endpoint_counter[e.path] += 1
+
+    print("\n=== Log Analyzer Summary ===")
+    print(f"Parsed entries: {parsed}")
+
+    print("\nTop IPs:")
+    for ip, c in ip_counter.most_common(args.top):
+        print(f"  {ip}: {c}")
+
+    print("\nStatus codes:")
+    for st, c in status_counter.most_common():
+        print(f"  {st}: {c}")
+
+    print("\nTop endpoints:")
+    for ep, c in endpoint_counter.most_common(args.top):
+        print(f"  {ep}: {c}")
+
 if __name__ == "__main__":
-    test_line = '192.168.0.10 - - [14/Feb/2026:10:01:01 -0300] "GET / HTTP/1.1" 200 1234 "-" "Mozilla/5.0"'
-    print("Line:", test_line)
-    print("Regex match:", bool(LOG_PATTERN.match(test_line)))
-    print("Parsed:", parse_line(test_line))
+    main()

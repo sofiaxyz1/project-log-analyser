@@ -1,7 +1,7 @@
 import argparse
 import re
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from typing import Optional, Iterable
 from collections import Counter
@@ -91,7 +91,7 @@ def main():
     with open(args.out, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
 
-        w.writerow(["gerado_em", datetime.utcnow().isoformat() + "Z"])
+        w.writerow(["gerado_em", datetime.now(timezone.utc).isoformat() + "Z"])
         w.writerow([])
 
         w.writerow(["metrica", "chave", "valor"])
